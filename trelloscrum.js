@@ -191,6 +191,7 @@ var recalcTotalsObserver = new CrossBrowser.MutationObserver(function(mutations)
     
     var $editControls = $(".card-detail-title .edit-controls");
     var $checklistEditControls = $('.checklist-item-details .edit-controls');
+    var $checklistCheckboxes = $('.checklist-item .checklist-item-checkbox:not(.consume-points-bound)');
     
     if($editControls.length > 0)
     {
@@ -200,7 +201,11 @@ var recalcTotalsObserver = new CrossBrowser.MutationObserver(function(mutations)
     if($checklistEditControls.length > 0)
     {
         showPointPickerChecklist($checklistEditControls.get(0));
+    }
 
+    if($checklistCheckboxes.length > 0)
+    {
+		checkedItemsConsumePoints($checklistCheckboxes.get(0));
     }
 });
 recalcTotalsObserver.observe(document.body, obsConfig);
@@ -791,6 +796,50 @@ function showPointPickerChecklist(location) {
 
 		return false
 	}))
+};
+
+// When checkboxes are clicked, we consume estimated points
+// by placing the same number of points as consumed points
+// but only if consumed points are not already defined
+function checkedItemsConsumePoints(location) {
+	var $checkBoxes = $('.checklist-item .checklist-item-checkbox:not(.consume-points-bound)');
+
+	if($checkBoxes.length === 0) return;
+
+	$checkBoxes.addClass('consume-points-bound');
+
+	$checkBoxes.click(function(){
+		var $parentNode = $(this).parent();
+		if (! $parentNode.hasClass('checklist-item-state-complete')) {
+			var $text = $parentNode.find('.checklist-item-details-text').first();
+			var text = $text.text();
+
+			var $textarea = $parentNode.find('.checklist-item-details .edit textarea')
+
+			var estimateParsed = $text.text().match(reg);
+			var consumedParsed = $text.text().match(regC);
+
+			var estimatePoints = estimateParsed?estimateParsed[2]:0;
+			var consumedPoints = consumedParsed?consumedParsed[2]:0;
+
+			if (Number(consumedPoints) === 0) {
+				$textarea[0].value=text.match(regC)?text.replace(regC, ' ['+estimatePoints+']'):text + ' ['+estimatePoints+']';
+
+				$parentNode.find(".checklist-item-details").addClass("editing");
+
+				// add edit button to checklist item edit controls
+				$('<div/>', {class: "edit-controls clearfix"}).appendTo($parentNode.find('.checklist-item-details .edit').first());
+				$('<input/>', {class: "primary confirm js-save-edit", value: "Save"}).appendTo($parentNode.find('.checklist-item-details .edit-controls').first());
+
+				// then click our button so it all gets saved away
+				$parentNode.find(".checklist-item-details .edit .js-save-edit").click();
+
+			}
+		}
+
+		return true
+	});
+
 };
 
 function updateCardTitle()
