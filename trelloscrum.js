@@ -144,6 +144,7 @@ var recalcTotalsObserver = new CrossBrowser.MutationObserver(function(mutations)
 	// infinite recursion).
 	var doFullRefresh = false;
 	var refreshJustTotals = false;
+	var shouldRecalculateChecklistSum = false;
 	$.each(mutations, function(index, mutation){
 		var $target = $(mutation.target);
 
@@ -170,12 +171,22 @@ var recalcTotalsObserver = new CrossBrowser.MutationObserver(function(mutations)
 			}
 		}
 
+		if($target.hasClass('checklist-item-details-text current hide-on-edit markeddown js-checkitem-name')){
+			console.log("shouldRecalculateChecklistSum");
+			shouldRecalculateChecklistSum = true;
+		}
+
 	});
 	
 	if(doFullRefresh){
 		recalcListAndTotal();
 	} else if(refreshJustTotals){
 		calcListPoints();
+	}
+
+	if(shouldRecalculateChecklistSum){
+		// updates points of a card based on all checklists items
+		updateCardTitle();
 	}
     
     var $editControls = $(".card-detail-title .edit-controls");
@@ -757,9 +768,6 @@ function showPointPickerChecklist(location) {
 		// then click our button so it all gets saved away
 		$(".checklist-item-details .edit .js-save-edit").click();
 
-		// updates points of a card based on all checklists items
-		updateCardTitle();
-
 		return false
 	}))
 
@@ -780,9 +788,6 @@ function showPointPickerChecklist(location) {
 
 		// then click our button so it all gets saved away
 		$(".checklist-item-details .edit .js-save-edit").click();
-
-		// updates points of a card based on all checklists items
-		updateCardTitle();
 
 		return false
 	}))
