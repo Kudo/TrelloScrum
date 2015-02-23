@@ -718,7 +718,29 @@ function updateTextWithEstimatePoints(text, value) {
 }
 
 function updateTextWithConsumedPoints(text, value) {
-	var newText = text.match(regC) ? text.replace(regC, ' ['+value+'] ') :text + ' ['+value+'] ';
+	var placeConsumedAfterEstimatePoints = false;
+	var newText = text;
+	if (!placeConsumedAfterEstimatePoints) {
+		newText = newText.match(regC) ? newText.replace(regC, ' ['+value+'] ') :newText + ' ['+value+'] ';
+	} else {
+		if (newText.match(regC)) { // if consumed points are already present
+			newText = newText.replace(regC, ' ['+value+'] '); // just update points wherever they are
+		} else { // if there are no consumed points, place it after estimated points
+			var cleanTitle = $.trim(newText.replace(reg,'$1').replace(regC,'$1'));
+
+			// Prepend consumed points to cleanTitle
+			newText = ' ['+value+'] ' + cleanTitle;
+			newText = newText.trim();
+
+			// If there were estimate points, prepend them again
+			var estimateParsed = text.match(reg);
+			var estimatePoints = estimateParsed?estimateParsed[2]:0;
+			if (estimatePoints !== 'undefined') {
+				newText = ' ('+estimatePoints+') ' + newText;
+				newText = newText.trim();
+			}
+		}
+	}
 	return newText.trim();
 }
 
