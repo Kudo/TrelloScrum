@@ -712,6 +712,16 @@ function ListCard(el, identifier){
 	setTimeout(that.refresh);
 };
 
+function updateTextWithEstimatePoints(text, value) {
+	var newText = text.match(reg)?text.replace(reg, ' ('+value+') '):' ('+value+') ' + text;
+	return newText.trim();
+}
+
+function updateTextWithConsumedPoints(text, value) {
+	var newText = text.match(regC) ? text.replace(regC, ' ['+value+'] ') :text + ' ['+value+'] ';
+	return newText.trim();
+}
+
 //the story point picker
 function showPointPicker(location) {
 	if($(location).find('.picker').length) return;
@@ -725,7 +735,7 @@ function showPointPicker(location) {
 		var text = $text.val();
 
 		// replace our new
-		$text[0].value=text.match(reg)?text.replace(reg, '('+value+') '):'('+value+') ' + text;
+		$text[0].value = updateTextWithEstimatePoints(text, value);
 
 		// then click our button so it all gets saved away
 		$(".card-detail-title .edit .js-save-edit").click();
@@ -744,7 +754,7 @@ function showPointPicker(location) {
 		var text = $text.val();
 
 		// replace our new
-		$text[0].value=text.match(regC)?text.replace(regC, ' ['+value+']'):text + ' ['+value+']';
+		$text[0].value = updateTextWithConsumedPoints(text, value);
 
 		// then click our button so it all gets saved away
 		$(".card-detail-title .edit .js-save-edit").click();
@@ -768,7 +778,7 @@ function showPointPickerChecklist(location) {
 		var text = $text.val();
 
 		// replace our new
-		$text[0].value=text.match(reg)?text.replace(reg, '('+value+') '):'('+value+') ' + text;
+		$text[0].value = updateTextWithEstimatePoints(text, value);
 
 		// then click our button so it all gets saved away
 		$(".checklist-item-details .edit .js-save-edit").click();
@@ -789,7 +799,7 @@ function showPointPickerChecklist(location) {
 		var text = $text.val();
 
 		// replace our new
-		$text[0].value=text.match(regC)?text.replace(regC, ' ['+value+']'):text + ' ['+value+']';
+		$text[0].value = updateTextWithConsumedPoints(text, value);
 
 		// then click our button so it all gets saved away
 		$(".checklist-item-details .edit .js-save-edit").click();
@@ -823,7 +833,7 @@ function checkedItemsConsumePoints(location) {
 			var consumedPoints = consumedParsed?consumedParsed[2]:0;
 
 			if (Number(consumedPoints) === 0) {
-				$textarea[0].value=text.match(regC)?text.replace(regC, ' ['+estimatePoints+']'):text + ' ['+estimatePoints+']';
+				$textarea[0].value = updateTextWithConsumedPoints(text, estimatePoints);
 
 				$parentNode.find(".checklist-item-details").addClass("editing");
 
@@ -852,8 +862,8 @@ function updateCardTitle()
 		$(".card-detail-title").addClass("editing");
 
 		var totals = calculateCheckListPoints();
-		var newTitleValue = titleText.match(reg)?titleText.replace(reg, '('+totals.estimateTotal+') '):'('+totals.estimateTotal+') ' + titleText;
-		newTitleValue = newTitleValue.match(regC)?newTitleValue.replace(regC, ' ['+totals.consumedTotal+']'):newTitleValue + ' ['+totals.consumedTotal+']';
+		var newTitleValue = updateTextWithEstimatePoints(titleText, totals.estimateTotal);
+		newTitleValue = updateTextWithConsumedPoints(newTitleValue, totals.consumedTotal);
 		$title[0].value = newTitleValue;
 
 		// add edit button to card title edit controls
