@@ -51,10 +51,12 @@ var _pointsAttr = ['cpoints', 'points'];
 var S4T_SETTINGS = [];
 var SETTING_NAME_LINK_STYLE = "burndownLinkStyle";
 var SETTING_NAME_ESTIMATES = "estimatesSequence";
-var S4T_ALL_SETTINGS = [SETTING_NAME_LINK_STYLE, SETTING_NAME_ESTIMATES];
+var SETTING_NAME_CONSUMED_POSITION = "consumedPosition";
+var S4T_ALL_SETTINGS = [SETTING_NAME_LINK_STYLE, SETTING_NAME_ESTIMATES, SETTING_NAME_CONSUMED_POSITION];
 var S4T_SETTING_DEFAULTS = {};
 S4T_SETTING_DEFAULTS[SETTING_NAME_LINK_STYLE] = 'full';
 S4T_SETTING_DEFAULTS[SETTING_NAME_ESTIMATES] = _pointSeq.join();
+S4T_SETTING_DEFAULTS[SETTING_NAME_CONSUMED_POSITION] = 'at_the_end';
 refreshSettings(); // get the settings right away (may take a little bit if using Chrome cloud storage)
 
 //internals
@@ -303,6 +305,7 @@ function showSettings()
 		// Load the current settings (with defaults in case Settings haven't been set).
 		var setting_link = S4T_SETTINGS[SETTING_NAME_LINK_STYLE];
 		var setting_estimateSeq = S4T_SETTINGS[SETTING_NAME_ESTIMATES];
+		var setting_consumedPosition = S4T_SETTINGS[SETTING_NAME_CONSUMED_POSITION];
 	
 		var settingsDiv = $('<div/>', {style: "padding:0px 10px;font-family:'Helvetica Neue', Arial, Helvetica, sans-serif;"});
 		var iframeHeader = $('<h3/>', {style: 'text-align: center;'});
@@ -364,12 +367,35 @@ function showSettings()
 											});
 			fieldset_estimateButtons.append(restoreDefaultsButton);
 
+		// How the 'Append Consumed Points after Estimate Points' link should appear (if at all).
+		var fieldset_consumedPosition = $('<fieldset/>', {style: 'margin-top:5px'});
+		var legend_consumedPosition = $('<legend/>');
+		legend_consumedPosition.text("Where to add new Consumed Points");
+		var consumedPositionSetting_radioName = 'consumedAfterEstimateSetting';
+		fieldset_consumedPosition.append(legend_consumedPosition);
+			var consumedPositionRadio_atTheEnd = $('<input/>', {type: 'radio', name: consumedPositionSetting_radioName, id: 'consumed_at_the_end', value: 'at_the_end'});
+			if(setting_consumedPosition == 'at_the_end'){
+				consumedPositionRadio_atTheEnd.prop('checked', true);
+			}
+			var label_atTheEnd = $('<label/>', {for: 'consumed_at_the_end'});
+			label_atTheEnd.text('At the end of title: (3) Title [3]');
+			fieldset_consumedPosition.append(consumedPositionRadio_atTheEnd).append(label_atTheEnd).append("<br/>");
+
+			var consumedPositionRadio_atTheStart = $('<input/>', {type: 'radio', name: consumedPositionSetting_radioName, id: 'consumed_at_the_start_after_estimate', value: 'at_the_start_after_estimate'});
+			if(setting_consumedPosition == 'at_the_start_after_estimate'){
+				consumedPositionRadio_atTheStart.prop('checked', true);
+			}
+			var label_atTheStart = $('<label/>', {for: 'consumed_at_the_start_after_estimate'});
+			label_atTheStart.text('At the start of title, but after estimate points: (3) [3] Title');
+			fieldset_consumedPosition.append(consumedPositionRadio_atTheStart).append(label_atTheStart).append("<br/>");
+
 		var saveButton = $('<button/>', {style:'margin-top:5px'}).text('Save Settings').click(function(e){
 			e.preventDefault();
 
 			// Save the settings (persists them using Chrome cloud, LocalStorage, or Cookies - in that order of preference if available).
 			S4T_SETTINGS[SETTING_NAME_LINK_STYLE] = $('#'+settingsFrameId).contents().find('input:radio[name='+burndownLinkSetting_radioName+']:checked').val();
 			S4T_SETTINGS[SETTING_NAME_ESTIMATES] = $('#'+settingsFrameId).contents().find('#'+estimateFieldId).val();
+			S4T_SETTINGS[SETTING_NAME_CONSUMED_POSITION] = $('#'+settingsFrameId).contents().find('input:radio[name='+consumedPositionSetting_radioName+']:checked').val();
 
 			// Persist all settings.
 			$.each(S4T_ALL_SETTINGS, function(i, settingName){
@@ -385,6 +411,7 @@ function showSettings()
 		// Set up the form (all added down here to be easier to change the order).
 		settingsForm.append(fieldset_burndownLink);
 		settingsForm.append(fieldset_estimateButtons);
+		settingsForm.append(fieldset_consumedPosition);
 		settingsForm.append(saveButton);
 		settingsForm.append(savedIndicator);
 	}
@@ -411,7 +438,7 @@ function showSettings()
 
 	// Trello swallows normal input, so things like checkboxes and radio buttons don't work right... so we stuff everything in an iframe.
 	var iframeObj = $('<iframe/>', {frameborder: '0',
-						 style: 'width: 670px; height: 528px;', /* 512 was fine on Chrome, but FF requires 528 to avoid scrollbars */
+						 style: 'width: 670px; height: 578px;', /* 512 was fine on Chrome, but FF requires 528 to avoid scrollbars */
 						 id: settingsFrameId,
 	});
 	$windowWrapper = $('.window-wrapper');
@@ -718,9 +745,9 @@ function updateTextWithEstimatePoints(text, value) {
 }
 
 function updateTextWithConsumedPoints(text, value) {
-	var placeConsumedAfterEstimatePoints = false;
+	var placeConsumedAtTheEnd = (S4T_SETTINGS[SETTING_NAME_CONSUMED_POSITION] == 'at_the_end');
 	var newText = text;
-	if (!placeConsumedAfterEstimatePoints) {
+	if (placeConsumedAtTheEnd) {
 		newText = newText.match(regC) ? newText.replace(regC, ' ['+value+'] ') :newText + ' ['+value+'] ';
 	} else {
 		if (newText.match(regC)) { // if consumed points are already present
