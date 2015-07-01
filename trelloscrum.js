@@ -236,9 +236,9 @@ function updateBurndownLink(){
 		buttons += "</a>";
 		var showOnLeft = true;
 		if(showOnLeft){
-			$('.board-header-btns.left').last().after(buttons);
+			$('.board-header-btns.mod-left').last().after(buttons);
 		} else {
-			$('.board-header-btns.right,#board-header a').last().after(buttons);
+			$('.board-header-btns.mod-right,#board-header a').last().after(buttons);
 		}
         $('#burndownLink').click(showBurndown);
 		$('#scrumSettingsLink').click(showSettings);
@@ -492,7 +492,7 @@ var ctto;
 function computeTotal(){
 	clearTimeout(ctto);
 	ctto = setTimeout(function(){
-		var $title = $('.board-header-btns.right,#board-header a');
+		var $title = $('.board-header-btns.mod-right,#board-header a');
 		var $total = $title.children('.list-total').empty();
 		if ($total.length == 0)
 			$total = $('<span/>', {class: "list-total"}).appendTo($title);
